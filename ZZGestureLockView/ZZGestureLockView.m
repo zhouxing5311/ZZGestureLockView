@@ -135,7 +135,7 @@
 - (void)panAction:(UIPanGestureRecognizer *)panGesture {
     
     if (panGesture.state == UIGestureRecognizerStateBegan) {
-        //开始
+        //begin
         [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(clearAllSelectedItems) object:nil];
         
         //init state
@@ -176,7 +176,7 @@
             [self clearAllSelectedItems];
         }
     } else {
-        //滑动
+        //moving
         [self getSelectedItemWithPanGesture:panGesture];
         
         [self setNeedsDisplay];
