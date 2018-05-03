@@ -1,7 +1,7 @@
 # 简单易用的手势密码
 
 ## ZZGestureLockView部分特点
-* 通过`drawRect`结合`touchBegin`等相关方法实现的手势密码。
+* 通过`drawRect`结合`UIPanGestureRecognizer`实现的手势密码。
 * 每一个item使用自定义的`UIImageView`，也可以自定义view，并给出三种对应的状态即可。
 * 可以自己制定连接颜色、宽度、密码最少个数、以及item的normal状态图片、selected状态图片以及warning状态图片。
 * 通过代理回调最终的手势结果。

@@ -128,63 +128,60 @@
         [self addSubview:item];
     }
     
+    UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panAction:)];
+    [self addGestureRecognizer:panGesture];
 }
 
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(clearAllSelectedItems) object:nil];
+- (void)panAction:(UIPanGestureRecognizer *)panGesture {
     
-    //init state
-    [self clearAllSelectedItems];
-    
-    [self getSelectedItemWithTouches:touches];
-    
-    if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidStartWithLockView:)]) {
-        [self.delegate zzGestureLockViewDidStartWithLockView:self];
-    }
-}
-
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    
-    [self getSelectedItemWithTouches:touches];
-    [self setNeedsDisplay];
-    
-}
-
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    
-    if (self.selectedItemsArray.count < self.miniPasswordLength) {
-
-        //make warning
-        [self makeWarning];
-
-        //tell the delegate
-        if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidEndWithLockView:itemState:gestureResult:)]) {
-            [self.delegate zzGestureLockViewDidEndWithLockView:self itemState:ZZGestureLockItemStateWarning gestureResult:@""];
-        }
-
-    } else {
-
-        NSString *password = @"";
-        //get final password
-        for (NSInteger i = 0; i < self.selectedItemsArray.count; i++) {
-            ZZGestureLockItem *currentItem = self.selectedItemsArray[i];
-            password = [password stringByAppendingFormat:@"%d",(int)currentItem.tag];
-        }
-
-        //tell the delegate
-        if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidEndWithLockView:itemState:gestureResult:)]) {
-            [self.delegate zzGestureLockViewDidEndWithLockView:self itemState:ZZGestureLockItemStateNormal gestureResult:password];
-        }
-
+    if (panGesture.state == UIGestureRecognizerStateBegan) {
+        //开始
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(clearAllSelectedItems) object:nil];
+        
+        //init state
         [self clearAllSelectedItems];
+        
+        [self getSelectedItemWithPanGesture:panGesture];
+        
+        if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidStartWithLockView:)]) {
+            [self.delegate zzGestureLockViewDidStartWithLockView:self];
+        }
+        
+    } else if (panGesture.state == UIGestureRecognizerStateEnded) {
+        
+        if (self.selectedItemsArray.count < self.miniPasswordLength) {
+            
+            //make warning
+            [self makeWarning];
+            
+            //tell the delegate
+            if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidEndWithLockView:itemState:gestureResult:)]) {
+                [self.delegate zzGestureLockViewDidEndWithLockView:self itemState:ZZGestureLockItemStateWarning gestureResult:@""];
+            }
+            
+        } else {
+            
+            NSString *password = @"";
+            //get final password
+            for (NSInteger i = 0; i < self.selectedItemsArray.count; i++) {
+                ZZGestureLockItem *currentItem = self.selectedItemsArray[i];
+                password = [password stringByAppendingFormat:@"%d",(int)currentItem.tag];
+            }
+            
+            //tell the delegate
+            if ([self.delegate respondsToSelector:@selector(zzGestureLockViewDidEndWithLockView:itemState:gestureResult:)]) {
+                [self.delegate zzGestureLockViewDidEndWithLockView:self itemState:ZZGestureLockItemStateNormal gestureResult:password];
+            }
+            
+            [self clearAllSelectedItems];
+        }
+    } else {
+        //滑动
+        [self getSelectedItemWithPanGesture:panGesture];
+        
+        [self setNeedsDisplay];
+        
     }
-    
-}
-
-//get current point
-- (CGPoint)getCurrentPoint:(NSSet *)touches {
-    UITouch *touch = [touches anyObject];
-    return [touch locationInView:self];
 }
 
 //return the item which contains the point
@@ -199,9 +196,9 @@
 }
 
 //get need selected item and make it selected
-- (void)getSelectedItemWithTouches:(NSSet<UITouch *> *)touches {
+- (void)getSelectedItemWithPanGesture:(UIPanGestureRecognizer *)panGesture {
     
-    CGPoint currentPoint = [self getCurrentPoint:touches];
+    CGPoint currentPoint = [panGesture locationInView:self];
     self.currentPoint = currentPoint;
     ZZGestureLockItem *currentSelectedItem = [self getCurrentSelectedItemWithPoint:currentPoint];
     if (currentSelectedItem && currentSelectedItem.itemState != ZZGestureLockItemStateSelected) {
